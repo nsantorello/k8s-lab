@@ -1,0 +1,219 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem3
+spec:
+ selector:
+   matchLabels:
+     app: prob1
+ template:
+   metadata:
+     labels:
+       app: prob1
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-app:problem3
+       ports:
+       - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem4
+spec:
+ selector:
+   matchLabels:
+     app: prob4
+ template:
+   metadata:
+     labels:
+       app: prob4
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-app:problem4
+       ports:
+       - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem5
+spec:
+ selector:
+   matchLabels:
+     app: prob5
+ template:
+   metadata:
+     labels:
+       app: prob5
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-appstable
+       ports:
+       - containerPort: 8080
+       resources:
+         requests:
+           memory: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem6
+spec:
+ selector:
+   matchLabels:
+     app: prob6
+ template:
+   metadata:
+     labels:
+       app: prob6
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-appstable
+       ports:
+       - containerPort: 8080
+       readinessProbe:
+         failureThreshold: 3
+         httpGet:
+           path: /
+           port: 8080
+           scheme: HTTP
+         periodSeconds: 10
+         successThreshold: 1
+         timeoutSeconds: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem7
+spec:
+ selector:
+   matchLabels:
+     app: prob7
+ template:
+   metadata:
+     labels:
+       app: prob7
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-appstable
+       ports:
+       - containerPort: 8080
+       livenessProbe:
+         failureThreshold: 3
+         httpGet:
+           path: /
+           port: 8080
+           scheme: HTTP
+         periodSeconds: 10
+         successThreshold: 1
+         timeoutSeconds: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem8
+spec:
+ selector:
+   matchLabels:
+     app: prob8
+ template:
+   metadata:
+     labels:
+       app: prob8
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-appstable
+       ports:
+       - containerPort: 8080
+       env:
+        - name: SOME_ENV_VARIABLE
+          valueFrom:
+            configMapKeyRef:
+              name: prob8-config-map
+              key: some.key
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem9
+spec:
+ selector:
+   matchLabels:
+     app: prob9
+ template:
+   metadata:
+     labels:
+       app: prob9
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-app:problem9
+       ports:
+       - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: problem9-svc
+spec:
+  ports:
+  - port: 80
+    targetPort: 8081
+  selector:
+    app: problem9
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: problem9-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: problem9-svc
+          servicePort: 80
+        path: /
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: problem10-namespace
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: lab-quota
+  namespace: problem10-namespace 
+spec:
+  hard:
+    pods: "1"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: problem10
+ namespace: problem10-namespace
+spec:
+ replicas: 2
+ selector:
+   matchLabels:
+     app: prob10
+ template:
+   metadata:
+     labels:
+       app: prob10
+   spec:
+     containers:
+     - name: cont1
+       image: gcr.io/nks-dawn-k8s-lab/hello-app:stable
+       ports:
+       - containerPort: 8080
